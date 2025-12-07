@@ -50,7 +50,6 @@ AsyncSessionLocal = sessionmaker(
 )
 
 
-
 # Step 4: Create a function to get database sessions
 # This is called a "dependency" - FastAPI will automatically call this
 # for each request and pass the result to your endpoint functions
