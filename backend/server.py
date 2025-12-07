@@ -30,7 +30,6 @@ from sqlalchemy.orm import sessionmaker
 
 from models import Base, Todo
 
-
 # Step 2: Load environment variables from .env file
 # Looks for .env file in current directory and parent directories
 load_dotenv()
@@ -39,6 +38,17 @@ load_dotenv()
 # Get DATABASE_URL from environment variable, fallback to local development
 # Format: postgresql+asyncpg://username:password@host:port/database_name
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Create async engine
+engine = create_async_engine(DATABASE_URL, echo=True)
+
+# Async Session maker
+AsyncSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
 
 
 # Step 4: Create a function to get database sessions
@@ -173,7 +183,7 @@ async def get_todo(todo_id: int, db: AsyncSession = Depends(get_db)):
     return todo
 
 
-# Step 10: 
+# Step 10:
 # CREATE: Create a new todo
 @app.post("/todos", response_model=TodoResponse, status_code=201)
 async def create_todo(todo: TodoCreate, db: AsyncSession = Depends(get_db)):
@@ -199,7 +209,7 @@ async def create_todo(todo: TodoCreate, db: AsyncSession = Depends(get_db)):
     return db_todo
 
 
-# Step 11: 
+# Step 11:
 # UPDATE: Update an existing todo (PATCH - partial update)
 @app.patch("/todos/{todo_id}", response_model=TodoResponse)
 async def patch_todo(
@@ -293,5 +303,3 @@ if __name__ == "__main__":
 # Note: The server will be run in Docker (see Docker Configuration section)
 # If you have Poetry installed locally, you can also run:
 # poetry run uvicorn server:app --reload
-
-
