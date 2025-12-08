@@ -164,6 +164,11 @@ async def get_all_todos(db: AsyncSession = Depends(get_db)):
     todos = result.scalars().all()
     return todos
 
+# FILTER: Get todos by completion status
+@app.get("/todos/filter", response_model=List[TodoResponse])
+async def filter_todos(completed: bool, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Todo).where(Todo.completed == completed))
+    return result.scalars().all()
 
 # READ: Get a single todo by ID
 @app.get("/todos/{todo_id}", response_model=TodoResponse)
@@ -261,6 +266,15 @@ async def delete_todo(todo_id: int, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     return None
+
+
+    # GET /todos/filter?completed=true
+@app.get("/todos/filter", response_model=List[TodoResponse])
+async def filter_todos(completed: bool, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Todo).where(Todo.completed == completed))
+    todos = result.scalars().all()
+    return todos
+
 
 
 # Step 13: Serve static files (frontend) in production
