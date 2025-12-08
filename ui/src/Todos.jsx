@@ -3,17 +3,18 @@ import React, { useState, useEffect } from 'react';
 export default function Todos({ API_URL, refreshTrigger }) {
   const [todos, setTodos] = useState([]);
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('created_at'); // Field to sort by
+  const [sortBy, setSortBy] = useState('created_at'); // Which field to sort by
   const [sortDir, setSortDir] = useState('asc'); // Sort direction
-  const [checkedIds, setCheckedIds] = useState([]); // Selected todos for batch actions
+  const [checkedIds, setCheckedIds] = useState([]); // IDs of todos selected for batch actions
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'completed', 'pending'
 
-  // Fetch todos from backend and apply filters/sorting
+
+  // Fetch todos from backend, apply search filter and sorting
   async function loadTodos() {
     let res = await fetch(`${API_URL}/todos`);
     let data = await res.json();
 
-    // Filter by search term
+    // Filter by search term in title or description
     if (search.trim() !== '') {
       data = data.filter(
         t =>
@@ -24,16 +25,18 @@ export default function Todos({ API_URL, refreshTrigger }) {
 
     // Filter by completion status
     if (filterStatus === 'completed') {
-      data = data.filter(t => t.completed);
+        data = data.filter(t => t.completed);
     } else if (filterStatus === 'pending') {
-      data = data.filter(t => !t.completed);
+        data = data.filter(t => !t.completed);
     }
 
-    // Sort todos
+
+    // Sort the todos based on selected field and direction
     data.sort((a, b) => {
       let valA = a[sortBy];
       let valB = b[sortBy];
 
+      // Convert date strings to Date objects for comparison
       if (sortBy === 'created_at' || sortBy === 'updated_at') {
         valA = new Date(valA);
         valB = new Date(valB);
@@ -47,13 +50,18 @@ export default function Todos({ API_URL, refreshTrigger }) {
     setTodos(data);
   }
 
-  // Delete a single todo
+  // Run loadTodos whenever the refreshTrigger or filters change
+  useEffect(() => {
+    loadTodos();
+  }, [refreshTrigger, search, sortBy, sortDir]);
+
+  // Delete a single todo by ID
   async function deleteOne(id) {
     await fetch(`${API_URL}/todos/${id}`, { method: 'DELETE' });
     loadTodos();
   }
 
-  // Delete selected todos in batch
+  // Delete multiple selected todos
   async function deleteSelected() {
     await Promise.all(
       checkedIds.map(id => fetch(`${API_URL}/todos/${id}`, { method: 'DELETE' }))
@@ -62,7 +70,7 @@ export default function Todos({ API_URL, refreshTrigger }) {
     loadTodos();
   }
 
-  // Toggle selection of a todo
+  // Toggle checkbox selection for a todo
   function toggleCheck(id) {
     if (checkedIds.includes(id)) {
       setCheckedIds(checkedIds.filter(x => x !== id));
@@ -71,19 +79,14 @@ export default function Todos({ API_URL, refreshTrigger }) {
     }
   }
 
-  // Stats
+  // Simple stats: total todos, done, in progress
   const total = todos.length;
   const done = todos.filter(t => t.completed).length;
   const inProgress = total - done;
 
-  // Reload todos when refresh trigger or filters change
-  useEffect(() => {
-    loadTodos();
-  }, [refreshTrigger, search, sortBy, sortDir, filterStatus]);
-
   return (
     <div className="todos-container">
-      {/* Search box */}
+      {/* Search input */}
       <input
         type="text"
         placeholder="Search todos..."
@@ -91,17 +94,16 @@ export default function Todos({ API_URL, refreshTrigger }) {
         onChange={e => setSearch(e.target.value)}
         style={{ marginBottom: '10px', padding: '4px' }}
       />
-
-      {/* Filter by completion status */}
-      <div style={{ marginBottom: '10px' }}>
-        <label>Filter: </label>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="all">All</option>
-          <option value="completed">Completed</option>
-          <option value="pending">Pending</option>
-        </select>
-      </div>
-
+        {/* Filter by status */}
+        <div style={{ marginBottom: '10px' }}>
+            <label>Filter: </label>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+             <option value="all">All</option>
+             <option value="completed">Completed</option>
+             <option value="pending">Pending</option>
+            </select>
+            </div>
+            
       {/* Sort controls */}
       <div style={{ marginBottom: '10px' }}>
         <label>Sort by: </label>
@@ -114,12 +116,12 @@ export default function Todos({ API_URL, refreshTrigger }) {
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Stats display */}
       <div style={{ marginBottom: '10px' }}>
         <strong>Stats:</strong> Total: {total}, Done: {done}, In Progress: {inProgress}
       </div>
 
-      {/* Batch delete */}
+      {/* Batch delete button */}
       {checkedIds.length > 0 && (
         <div style={{ marginBottom: '10px' }}>
           <button onClick={deleteSelected}>Delete Selected ({checkedIds.length})</button>
@@ -135,13 +137,11 @@ export default function Todos({ API_URL, refreshTrigger }) {
               checked={checkedIds.includes(todo.id)}
               onChange={() => toggleCheck(todo.id)}
             />{' '}
-            <span>{todo.completed ? ' Done' : 'Pending'}</span> - {todo.title}
+            <span>{todo.completed ? ' Done' : 'Pending....'}</span> - {todo.title}
             <br />
             <small>{todo.description}</small>
             <br />
-            <button onClick={() => deleteOne(todo.id)} style={{ marginTop: '2px' }}>
-              Delete
-            </button>
+            <button onClick={() => deleteOne(todo.id)} style={{ marginTop: '2px' }}>Delete</button>
           </li>
         ))}
       </ul>

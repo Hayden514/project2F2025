@@ -3,13 +3,14 @@ import './globals.css';
 import Todos from './Todos';
 import CreateTodo from './CreateTodo';
 
-const API_URL = 'http://localhost:8000';
+// TODO: Change this when deploy to Railway
+const API_URL = 'http://localhost:8000'; // Local backend for testing
+// const API_URL = ''; // Use this after deployment
 
 export default function App() {
-  // This state triggers Todos to reload whenever it changes
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Callback passed to CreateTodo to refresh Todos after adding
+  // Function called after creating a new todo
   function refreshTodos() {
     setRefreshTrigger(prev => prev + 1);
   }
@@ -20,10 +21,10 @@ export default function App() {
         <h1>TODO List</h1>
       </header>
       <main>
-        {/* Pass refreshTrigger to Todos so it reloads when new todos are added */}
+        {/* Pass API_URL and refreshTrigger to Todos */}
         <Todos API_URL={API_URL} refreshTrigger={refreshTrigger} />
 
-        {/* Pass callback to CreateTodo */}
+        {/* Pass API_URL and onTodoCreated callback to CreateTodo */}
         <CreateTodo API_URL={API_URL} onTodoCreated={refreshTodos} />
       </main>
     </>
