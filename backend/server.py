@@ -155,14 +155,10 @@ app.add_middleware(
 # READ: Get all todos
 @app.get("/todos", response_model=List[TodoResponse])
 async def get_all_todos(db: AsyncSession = Depends(get_db)):
-    """
-    Get all todos from the database.
-
-    Returns: A list of all todos in the database
-    """
     result = await db.execute(select(Todo))
     todos = result.scalars().all()
     return todos
+
 
 # FILTER: Get todos by completion status
 @app.get("/todos/filter", response_model=List[TodoResponse])
@@ -170,14 +166,10 @@ async def filter_todos(completed: bool, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Todo).where(Todo.completed == completed))
     return result.scalars().all()
 
+
 # READ: Get a single todo by ID
 @app.get("/todos/{todo_id}", response_model=TodoResponse)
 async def get_todo(todo_id: int, db: AsyncSession = Depends(get_db)):
-    """
-    Get a single todo by its ID.
-
-    Returns: The todo if found, or a 404 error if not
-    """
     result = await db.execute(select(Todo).where(Todo.id == todo_id))
     todo = result.scalar_one_or_none()
 
@@ -267,14 +259,7 @@ async def delete_todo(todo_id: int, db: AsyncSession = Depends(get_db)):
 
     return None
 
-
     # GET /todos/filter?completed=true
-@app.get("/todos/filter", response_model=List[TodoResponse])
-async def filter_todos(completed: bool, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Todo).where(Todo.completed == completed))
-    todos = result.scalars().all()
-    return todos
-
 
 
 # Step 13: Serve static files (frontend) in production
